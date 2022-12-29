@@ -184,6 +184,7 @@ def evaluate(config,
       "eval".
   """
   # Create directory to eval_folder
+  print("EVALUATING")
   eval_dir = os.path.join(workdir, eval_folder)
   tf.io.gfile.makedirs(eval_dir)
 
@@ -273,6 +274,7 @@ def evaluate(config,
     # Wait for 2 additional mins in case the file exists but is not ready for reading
     ckpt_path = os.path.join(checkpoint_dir, f'checkpoint_{ckpt}.pth')
     try:
+      print("LOADING CHECKPOINT")
       state = restore_checkpoint(ckpt_path, state, device=config.device)
     except:
       time.sleep(60)
@@ -297,6 +299,7 @@ def evaluate(config,
 
       # Save loss values to disk or Google Cloud Storage
       all_losses = np.asarray(all_losses)
+      print(eval_dir)
       with tf.io.gfile.GFile(os.path.join(eval_dir, f"ckpt_{ckpt}_loss.npz"), "wb") as fout:
         io_buffer = io.BytesIO()
         np.savez_compressed(io_buffer, all_losses=all_losses, mean_loss=all_losses.mean())
@@ -328,6 +331,7 @@ def evaluate(config,
 
     # Generate samples and compute IS/FID/KID when enabled
     if config.eval.enable_sampling:
+      print("SAMPLING")
       num_sampling_rounds = config.eval.num_samples // config.eval.batch_size + 1
       for r in range(num_sampling_rounds):
         logging.info("sampling -- ckpt: %d, round: %d" % (ckpt, r))

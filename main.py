@@ -23,24 +23,31 @@ import logging
 import os
 import tensorflow as tf
 
-FLAGS = flags.FLAGS
-
-config_flags.DEFINE_config_file(
-  "config", None, "Training configuration.", lock_config=True)
-flags.DEFINE_string("workdir", None, "Work directory.")
-flags.DEFINE_enum("mode", None, ["train", "eval"], "Running mode: train or eval")
-flags.DEFINE_string("eval_folder", "eval",
-                    "The folder name for storing evaluation results")
-flags.mark_flags_as_required(["workdir", "config", "mode"])
+import argparse
 
 
-def main(argv):
-  if FLAGS.mode == "train":
+if __name__ == "__main__":
+  #app.run(main)
+  parser = argparse.ArgumentParser()
+  #parser.add_argument("--config_path", type=str, required=True)
+  #parser.add_argument("--workdir", type=str, required=True)
+  parser.add_argument("--mode", type=str, required=True)
+  args = parser.parse_args()
+  #parser.add_argument("--eval_folder", type=str, default="eval")
+
+  from configs.vp.ddpm import cifar10_continuous as config_py
+  #from configs.vp import cifar10_ncsnpp_continuous_fft as config_py
+  #from configs.vp import cifar10_ncsnpp_continuous as config_py
+  config = config_py.get_config()
+
+  #workdir = "checkpoints/vp/cifar10_ddpm_continuous"
+  workdir = "train_temp"
+  if args.mode == "train":
     # Create the working directory
-    tf.io.gfile.makedirs(FLAGS.workdir)
+    tf.io.gfile.makedirs(workdir)
     # Set logger so that it outputs to both console and file
     # Make logging work for both disk and Google Cloud Storage
-    gfile_stream = open(os.path.join(FLAGS.workdir, 'stdout.txt'), 'w')
+    gfile_stream = open(os.path.join(workdir, 'stdout.txt'), 'w')
     handler = logging.StreamHandler(gfile_stream)
     formatter = logging.Formatter('%(levelname)s - %(filename)s - %(asctime)s - %(message)s')
     handler.setFormatter(formatter)
@@ -48,13 +55,8 @@ def main(argv):
     logger.addHandler(handler)
     logger.setLevel('INFO')
     # Run the training pipeline
-    run_lib.train(FLAGS.config, FLAGS.workdir)
-  elif FLAGS.mode == "eval":
-    # Run the evaluation pipeline
-    run_lib.evaluate(FLAGS.config, FLAGS.workdir, FLAGS.eval_folder)
+    run_lib.train(config, workdir)
+  elif args.mode == "eval":
+    run_lib.evaluate(config, workdir, "eval")
   else:
-    raise ValueError(f"Mode {FLAGS.mode} not recognized.")
-
-
-if __name__ == "__main__":
-  app.run(main)
+    raise ValueError("Unsupported mode: {}".format(args.mode))

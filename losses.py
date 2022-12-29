@@ -52,7 +52,7 @@ def optimization_manager(config):
   return optimize_fn
 
 
-def get_sde_loss_fn(sde, train, reduce_mean=True, continuous=True, likelihood_weighting=True, eps=1e-5):
+def get_sde_loss_fn(sde, train, reduce_mean=True, continuous=True, likelihood_weighting=True, eps=1e-5, fft=False):
   """Create a loss function for training with arbirary SDEs.
 
   Args:

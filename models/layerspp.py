@@ -41,6 +41,19 @@ class GaussianFourierProjection(nn.Module):
     return torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
 
 
+class FastFourierTransform(nn.Module):
+  """Computes fast fourier transform"""
+  def __init__(self, embedding_size=256, scale=1.0):
+    super().__init__()
+    self.W = nn.Parameter(torch.randn(embedding_size) * scale, requires_grad=False)
+
+  def forward(self, x):
+    x_proj = x[:, None] * self.W[None, :] * 2 * np.pi
+    output = torch.fft(x_proj, norm="ortho")
+    return output
+
+
+
 class Combine(nn.Module):
   """Combine information from skip connections."""
 
